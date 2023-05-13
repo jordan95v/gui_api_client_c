@@ -1,9 +1,24 @@
 #include <gtk/gtk.h>
 #include <glib/gstdio.h>
+#include <curl/curl.h>
+#include "curl.h"
 
-static void send_request(GtkWidget *widget, GtkEntry *entry)
+typedef struct
 {
-    printf("%s\n", gtk_entry_get_text(entry));
+    gpointer entry;
+    gpointer response_area;
+} ObjectContainer;
+
+static void send_request(GtkWidget *widget, gpointer data)
+{
+    ObjectContainer *container = (ObjectContainer *)data;
+
+    struct StringBuffer res;
+    call(gtk_entry_get_text(container->entry), &res);
+    GtkTextBuffer *buffer = gtk_text_buffer_new(NULL);
+
+    gtk_text_buffer_set_text(buffer, res.data, -1);
+    gtk_text_view_set_buffer(container->response_area, buffer);
 }
 
 static void activate(GtkApplication *app, gpointer user_data)
@@ -16,8 +31,15 @@ static void activate(GtkApplication *app, gpointer user_data)
     GObject *window = gtk_builder_get_object(builder, "main_window");
     gtk_window_set_application(GTK_WINDOW(window), app);
 
+    GObject *entry = gtk_builder_get_object(builder, "url_entry");
+    GObject *response_area = gtk_builder_get_object(builder, "response_area");
+
+    ObjectContainer *container = malloc(sizeof(ObjectContainer));
+    container->entry = entry;
+    container->response_area = response_area;
+
     GObject *button = gtk_builder_get_object(builder, "send_button");
-    g_signal_connect(button, "clicked", G_CALLBACK(send_request), entry);
+    g_signal_connect(button, "clicked", G_CALLBACK(send_request), container);
 
     gtk_widget_set_visible(GTK_WIDGET(window), TRUE);
 

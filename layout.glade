@@ -95,9 +95,18 @@
           </packing>
         </child>
         <child>
-          <object class="GtkTextView" id="response_text">
+          <object class="GtkScrolledWindow">
             <property name="visible">True</property>
             <property name="can-focus">True</property>
+            <property name="vscrollbar-policy">always</property>
+            <property name="shadow-type">in</property>
+            <child>
+              <object class="GtkTextView" id="response_area">
+                <property name="visible">True</property>
+                <property name="can-focus">True</property>
+                <property name="vscroll-policy">natural</property>
+              </object>
+            </child>
           </object>
           <packing>
             <property name="expand">False</property>

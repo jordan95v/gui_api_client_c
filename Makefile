@@ -3,11 +3,12 @@ CC=gcc
 CFLAGS= `pkg-config --cflags gtk+-3.0`
 GTKLIBS= `pkg-config --libs gtk+-3.0`
 
-$(EXE): main.o
-	$(CC) $(CFLAGS) -o $@ $^ $(GTKLIBS)
+$(EXE): main.o curl.o
+	$(CC) $(CFLAGS) -o $@ $^ $(GTKLIBS) -lcurl
 	rm -rf *.o
 
 main.o: main.c
+curl.o: curl.c curl.h
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<
