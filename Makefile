@@ -13,11 +13,11 @@ curl.o: curl.c curl.h
 %.o: %.c
 	$(CC) $(CFLAGS) -c $<
 
-install:
-	apt install gcc libgtk-4-1 libgtk-4-dev -y
+install_ubuntu:
+	apt install gcc libgtk-3-0 libgtk-3-dev -y
 
-uninstall:
-	apt remove libgtk-4-1 libgtk-4-dev -y
+install_fedora:
+	dnf install gcc gtk3 gtk3-devel -y
 
 clean:
 	rm -rf *.o $(EXE)
