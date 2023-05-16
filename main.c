@@ -12,6 +12,8 @@ typedef struct
     gpointer entry;
     gpointer response_area;
     gpointer save_output;
+    gpointer key_entry;
+    gpointer value_entry;
 } ObjectContainer;
 
 // Reset the text in the response area
@@ -81,10 +83,16 @@ static void send_request(GtkWidget *widget, gpointer data)
     ObjectContainer *container = (ObjectContainer *)data;
     struct StringBuffer res;
     GtkTextIter *iter = malloc(sizeof(GtkTextIter));
+    GtkTextBuffer *buffer = gtk_text_view_get_buffer(container->response_area);
 
     // Call the API
+    if (strlen(gtk_entry_get_text(container->entry)) == 0)
+    {
+        reset_text(buffer, container);
+        set_text(buffer, container, "Please enter an url !\n");
+        return;
+    }
     call(gtk_entry_get_text(container->entry), &res);
-    GtkTextBuffer *buffer = gtk_text_view_get_buffer(container->response_area);
 
     // Manage the response
     cJSON *json = cJSON_Parse(res.data);
@@ -118,7 +126,46 @@ static void send_request(GtkWidget *widget, gpointer data)
 // Add the key and the value to the url
 static void add_to_url(GtkWidget *widget, gpointer data)
 {
-    printf("hello\n");
+    ObjectContainer *container = (ObjectContainer *)data;
+    GtkTextBuffer *buffer = gtk_text_view_get_buffer(container->response_area);
+
+    // Check if the url and the key/value are not empty
+    if (strlen(gtk_entry_get_text(container->entry)) == 0)
+    {
+        reset_text(buffer, container);
+        set_text(buffer, container, "Please enter an url !\n");
+    }
+    else if (strlen(gtk_entry_get_text(container->key_entry)) == 0 && strlen(gtk_entry_get_text(container->value_entry)) == 0)
+    {
+        reset_text(buffer, container);
+        set_text(buffer, container, "Please enter a key and a value !\n");
+    }
+    else
+    {
+        char *final = NULL;
+        const char *url = gtk_entry_get_text(container->entry);
+        const char *key = gtk_entry_get_text(container->key_entry);
+        const char *value = gtk_entry_get_text(container->value_entry);
+
+        // Check if the url already contains a parameter
+        if (strstr(url, "?") != NULL)
+        {
+            final = malloc(sizeof(char) * (strlen(url) + strlen(key) + strlen(value) + 3));
+            sprintf(final, "%s&%s=%s", url, key, value);
+        }
+        else
+        {
+            final = malloc(sizeof(char) * (strlen(url) + strlen(key) + strlen(value) + 3));
+            sprintf(final, "%s?%s=%s", url, key, value);
+        }
+
+        // Set the new url
+        gtk_entry_set_text(container->entry, final);
+        gtk_entry_set_text(container->key_entry, "");
+        gtk_entry_set_text(container->value_entry, "");
+        reset_text(buffer, container);
+        set_text(buffer, container, "Key and value added to the url !\n");
+    }
 }
 
 // Create the window and connect the signals
@@ -143,6 +190,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     container->entry = entry;
     container->response_area = response_area;
     container->save_output = checbox;
+    container->key_entry = key_entry;
+    container->value_entry = value_entry;
 
     GObject *button = gtk_builder_get_object(builder, "send_button");
     g_signal_connect(button, "clicked", G_CALLBACK(send_request), container);
