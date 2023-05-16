@@ -23,7 +23,7 @@ size_t WriteCallback(void *contents, size_t size, size_t nmemb, struct StringBuf
     return realsize;
 }
 
-void call(const char *url, struct StringBuffer *buffer)
+int call(const char *url, struct StringBuffer *buffer)
 {
     CURL *curl;
     CURLcode res;
@@ -44,12 +44,13 @@ void call(const char *url, struct StringBuffer *buffer)
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, buffer);
         res = curl_easy_perform(curl);
         if (res != CURLE_OK)
-            printf("Erreur lors de l'exécution de la requête curl : %s\n", curl_easy_strerror(res));
+            return 0;
         curl_easy_cleanup(curl);
     }
     else
         printf("Erreur lors de l'initialisation de curl.\n");
     curl_global_cleanup();
+    return 1;
 }
 
 // int main()

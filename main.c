@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <gtk/gtk.h>
 #include <glib/gstdio.h>
-#include <curl/curl.h>
 #include "curl.h"
 #include "cJSON.h"
 
@@ -85,14 +84,20 @@ static void send_request(GtkWidget *widget, gpointer data)
     GtkTextIter *iter = malloc(sizeof(GtkTextIter));
     GtkTextBuffer *buffer = gtk_text_view_get_buffer(container->response_area);
 
-    // Call the API
+    // Here i reset so everything looks clean in the response area.
+    reset_text(buffer, container);
+
+    // Call the API and check for error
     if (strlen(gtk_entry_get_text(container->entry)) == 0)
     {
-        reset_text(buffer, container);
         set_text(buffer, container, "Please enter an url !\n");
         return;
     }
-    call(gtk_entry_get_text(container->entry), &res);
+    if (call(gtk_entry_get_text(container->entry), &res) == 0)
+    {
+        set_text(buffer, container, "Error while calling the API ! Please verify the URL.\n");
+        return;
+    }
 
     // Manage the response
     cJSON *json = cJSON_Parse(res.data);
@@ -100,7 +105,6 @@ static void send_request(GtkWidget *widget, gpointer data)
     // Save the response in a file if the checkbox is checked, else show
     if (gtk_toggle_button_get_active(container->save_output))
     {
-        reset_text(buffer, container);
         FILE *file = fopen("output.json", "w");
         if (file == NULL)
         {
@@ -116,7 +120,6 @@ static void send_request(GtkWidget *widget, gpointer data)
     }
     else
     {
-        reset_text(buffer, container);
         parse_json(json, buffer, container, -1);
     }
     cJSON_Delete(json);
@@ -129,15 +132,16 @@ static void add_to_url(GtkWidget *widget, gpointer data)
     ObjectContainer *container = (ObjectContainer *)data;
     GtkTextBuffer *buffer = gtk_text_view_get_buffer(container->response_area);
 
+    // Here i reset so everything looks clean in the response area.
+    reset_text(buffer, container);
+
     // Check if the url and the key/value are not empty
     if (strlen(gtk_entry_get_text(container->entry)) == 0)
     {
-        reset_text(buffer, container);
         set_text(buffer, container, "Please enter an url !\n");
     }
     else if (strlen(gtk_entry_get_text(container->key_entry)) == 0 || strlen(gtk_entry_get_text(container->value_entry)) == 0)
     {
-        reset_text(buffer, container);
         set_text(buffer, container, "Please enter a key and a value !\n");
     }
     else
@@ -163,7 +167,6 @@ static void add_to_url(GtkWidget *widget, gpointer data)
         gtk_entry_set_text(container->entry, final);
         gtk_entry_set_text(container->key_entry, "");
         gtk_entry_set_text(container->value_entry, "");
-        reset_text(buffer, container);
         set_text(buffer, container, "Key and value added to the url !\n");
     }
 }
