@@ -115,6 +115,12 @@ static void send_request(GtkWidget *widget, gpointer data)
     free(res.data);
 }
 
+// Add the key and the value to the url
+static void add_to_url(GtkWidget *widget, gpointer data)
+{
+    printf("hello\n");
+}
+
 // Create the window and connect the signals
 static void activate(GtkApplication *app, gpointer user_data)
 {
@@ -130,6 +136,8 @@ static void activate(GtkApplication *app, gpointer user_data)
     GObject *entry = gtk_builder_get_object(builder, "url_entry");
     GObject *response_area = gtk_builder_get_object(builder, "response_area");
     GObject *checbox = gtk_builder_get_object(builder, "save_output");
+    GObject *key_entry = gtk_builder_get_object(builder, "key_entry");
+    GObject *value_entry = gtk_builder_get_object(builder, "value_entry");
 
     ObjectContainer *container = malloc(sizeof(ObjectContainer));
     container->entry = entry;
@@ -138,6 +146,9 @@ static void activate(GtkApplication *app, gpointer user_data)
 
     GObject *button = gtk_builder_get_object(builder, "send_button");
     g_signal_connect(button, "clicked", G_CALLBACK(send_request), container);
+
+    button = gtk_builder_get_object(builder, "add_url_button");
+    g_signal_connect(button, "clicked", G_CALLBACK(add_to_url), container);
 
     gtk_widget_set_visible(GTK_WIDGET(window), TRUE);
 
