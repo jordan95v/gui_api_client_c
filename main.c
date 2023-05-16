@@ -5,12 +5,61 @@
 #include <glib/gstdio.h>
 #include <curl/curl.h>
 #include "curl.h"
+#include "cJSON.h"
 
 typedef struct
 {
     gpointer entry;
     gpointer response_area;
 } ObjectContainer;
+
+void set_text(GtkTextBuffer *buffer, ObjectContainer *container, char *text)
+{
+    GtkTextIter *iter = malloc(sizeof(GtkTextIter));
+    gtk_text_buffer_get_end_iter(buffer, iter);
+    gtk_text_buffer_insert(buffer, iter, text, -1);
+    gtk_text_view_set_buffer(container->response_area, buffer);
+}
+
+void parse_json(cJSON *item, GtkTextBuffer *buffer, ObjectContainer *container)
+{
+    // Vérifier si l'élément est un objet
+    if (item->type == cJSON_Object)
+    {
+        cJSON *subItem = item->child;
+        while (subItem != NULL)
+        {
+            // Recuring call
+            parse_json(subItem, buffer, container);
+            subItem = subItem->next;
+        }
+    }
+    // Vérifier si l'élément est un tableau
+    else if (item->type == cJSON_Array)
+    {
+        cJSON *subItem = item->child;
+        while (subItem != NULL)
+        {
+            // Recuring call
+            parse_json(subItem, buffer, container);
+            subItem = subItem->next;
+        }
+    }
+    else
+    {
+        // Get key and value as string
+        char *key = item->string;
+        char *value = cJSON_Print(item);
+
+        // Create the string based on the key and the value
+        char *ret = malloc(sizeof(char) * (strlen(key) + strlen(value)) + 20);
+        sprintf(ret, "%s: %s\n", key, value);
+
+        // Add the response at the end.
+        set_text(buffer, container, ret);
+        free(value);
+    }
+}
 
 static void send_request(GtkWidget *widget, gpointer data)
 {
@@ -23,16 +72,8 @@ static void send_request(GtkWidget *widget, gpointer data)
     GtkTextBuffer *buffer = gtk_text_view_get_buffer(container->response_area);
 
     // Manage the response
-    char *ret = malloc(sizeof(char) * strlen(res.data) + 2);
-    if (gtk_text_buffer_get_char_count(buffer) != 0)
-        sprintf(ret, "\n%s", res.data);
-    else
-        sprintf(ret, "%s", res.data);
-
-    // Add the response at the end.
-    gtk_text_buffer_get_end_iter(buffer, iter);
-    gtk_text_buffer_insert(buffer, iter, ret, -1);
-    gtk_text_view_set_buffer(container->response_area, buffer);
+    cJSON *json = cJSON_Parse(res.data);
+    parse_json(json, buffer, container);
 }
 
 static void activate(GtkApplication *app, gpointer user_data)
