@@ -135,7 +135,7 @@ static void add_to_url(GtkWidget *widget, gpointer data)
         reset_text(buffer, container);
         set_text(buffer, container, "Please enter an url !\n");
     }
-    else if (strlen(gtk_entry_get_text(container->key_entry)) == 0 && strlen(gtk_entry_get_text(container->value_entry)) == 0)
+    else if (strlen(gtk_entry_get_text(container->key_entry)) == 0 || strlen(gtk_entry_get_text(container->value_entry)) == 0)
     {
         reset_text(buffer, container);
         set_text(buffer, container, "Please enter a key and a value !\n");
