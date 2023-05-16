@@ -26,6 +26,13 @@ void parse_json(cJSON *item, GtkTextBuffer *buffer, ObjectContainer *container)
     // Vérifier si l'élément est un objet
     if (item->type == cJSON_Object)
     {
+        char *key = item->string;
+        if (key != NULL)
+        {
+            char *ret = malloc(sizeof(char) * (strlen(key) + 20));
+            sprintf(ret, "%s:\n\n", key);
+            set_text(buffer, container, ret);
+        }
         cJSON *subItem = item->child;
         while (subItem != NULL)
         {
@@ -37,6 +44,13 @@ void parse_json(cJSON *item, GtkTextBuffer *buffer, ObjectContainer *container)
     // Vérifier si l'élément est un tableau
     else if (item->type == cJSON_Array)
     {
+        char *key = item->string;
+        if (key != NULL)
+        {
+            char *ret = malloc(sizeof(char) * (strlen(key) + 20));
+            sprintf(ret, "%s:\n\n", key);
+            set_text(buffer, container, ret);
+        }
         cJSON *subItem = item->child;
         while (subItem != NULL)
         {
