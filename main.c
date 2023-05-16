@@ -21,43 +21,33 @@ void set_text(GtkTextBuffer *buffer, ObjectContainer *container, char *text)
     gtk_text_view_set_buffer(container->response_area, buffer);
 }
 
-void parse_json(cJSON *item, GtkTextBuffer *buffer, ObjectContainer *container)
+void parse_json(cJSON *item, GtkTextBuffer *buffer, ObjectContainer *container, int indent)
 {
-    // Vérifier si l'élément est un objet
-    if (item->type == cJSON_Object)
+    char *space = malloc(sizeof(char) * indent + 1);
+    for (int i = 0; i < indent; i++)
     {
-        char *key = item->string;
-        if (key != NULL)
-        {
-            char *ret = malloc(sizeof(char) * (strlen(key) + 20));
-            sprintf(ret, "%s:\n\n", key);
-            set_text(buffer, container, ret);
-        }
-        cJSON *subItem = item->child;
-        while (subItem != NULL)
-        {
-            // Recuring call
-            parse_json(subItem, buffer, container);
-            subItem = subItem->next;
-        }
+        space[i] = '\t';
     }
-    // Vérifier si l'élément est un tableau
-    else if (item->type == cJSON_Array)
+    space[indent] = '\0';
+
+    // Vérifier si l'élément est un objet
+    if (item->type == cJSON_Object || item->type == cJSON_Array)
     {
         char *key = item->string;
         if (key != NULL)
         {
             char *ret = malloc(sizeof(char) * (strlen(key) + 20));
-            sprintf(ret, "%s:\n\n", key);
+            sprintf(ret, "%s%s:\n", space, key);
             set_text(buffer, container, ret);
         }
         cJSON *subItem = item->child;
         while (subItem != NULL)
         {
             // Recuring call
-            parse_json(subItem, buffer, container);
+            parse_json(subItem, buffer, container, indent + 1);
             subItem = subItem->next;
         }
+        set_text(buffer, container, "");
     }
     else
     {
@@ -67,7 +57,7 @@ void parse_json(cJSON *item, GtkTextBuffer *buffer, ObjectContainer *container)
 
         // Create the string based on the key and the value
         char *ret = malloc(sizeof(char) * (strlen(key) + strlen(value)) + 20);
-        sprintf(ret, "%s: %s\n", key, value);
+        sprintf(ret, "%s%s: %s\n", space, key, value);
 
         // Add the response at the end.
         set_text(buffer, container, ret);
@@ -87,7 +77,7 @@ static void send_request(GtkWidget *widget, gpointer data)
 
     // Manage the response
     cJSON *json = cJSON_Parse(res.data);
-    parse_json(json, buffer, container);
+    parse_json(json, buffer, container, -1);
 }
 
 static void activate(GtkApplication *app, gpointer user_data)
