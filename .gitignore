@@ -1,3 +1,6 @@
 prog
 .vscode/
 layout.glade~
+curl
+json-c*
+cJSON*

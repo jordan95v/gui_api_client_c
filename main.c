@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 #include <gtk/gtk.h>
 #include <glib/gstdio.h>
 #include <curl/curl.h>
@@ -12,12 +15,23 @@ typedef struct
 static void send_request(GtkWidget *widget, gpointer data)
 {
     ObjectContainer *container = (ObjectContainer *)data;
-
     struct StringBuffer res;
-    call(gtk_entry_get_text(container->entry), &res);
-    GtkTextBuffer *buffer = gtk_text_buffer_new(NULL);
+    GtkTextIter *iter = malloc(sizeof(GtkTextIter));
 
-    gtk_text_buffer_set_text(buffer, res.data, -1);
+    // Call the API
+    call(gtk_entry_get_text(container->entry), &res);
+    GtkTextBuffer *buffer = gtk_text_view_get_buffer(container->response_area);
+
+    // Manage the response
+    char *ret = malloc(sizeof(char) * strlen(res.data) + 2);
+    if (gtk_text_buffer_get_char_count(buffer) != 0)
+        sprintf(ret, "\n%s", res.data);
+    else
+        sprintf(ret, "%s", res.data);
+
+    // Add the response at the end.
+    gtk_text_buffer_get_end_iter(buffer, iter);
+    gtk_text_buffer_insert(buffer, iter, ret, -1);
     gtk_text_view_set_buffer(container->response_area, buffer);
 }
 
