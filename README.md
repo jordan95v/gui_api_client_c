@@ -12,7 +12,7 @@
 
 ## Description
 
-This is a project taht we made for the ESGI's annual project. 
+This is a project that we made for the ESGI's annual project. 
 
 It's a REST Client that allow you to request any API you want.
 
@@ -25,6 +25,7 @@ The installation is pretty straightforward, you just need to clone the project a
 ```bash
 make install_ubuntu # If you are on Ubuntu
 make install_fedora # If you are on Fedora
+make && ./prog # To launch the application
 ```
 
 As we use GTK3, there is no uninstall command, as GTK is used by other applications on your OS.
